@@ -1,16 +1,14 @@
+from fastapi import FastAPI
+from scalar_fastapi import get_scalar_api_reference
 
 from database import engine
-from fastapi import FastAPI
 import product as products
 import variant as variants
 import order as orders
 import customer as customers
 import address as addresses
 import order_item as order_items
-from fastapi import FastAPI
-from scalar_fastapi import get_scalar_api_reference
-import  auth.auth_routes  as auth_router
-
+import auth.auth_routes as auth_router
 
 app = FastAPI()
 app.include_router(products.router)

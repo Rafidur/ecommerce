@@ -1,5 +1,6 @@
 # app/jwt.py
 from datetime import datetime, timedelta
+import bcrypt
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -8,13 +9,14 @@ from sqlalchemy.orm import Session
 
 from models import Customer
 from database import get_db
+from schemas import Token
 
 SECRET_KEY = "your_jwt_secret_key"  # Set your JWT secret key here
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 router = APIRouter(
     prefix="/auth",
@@ -63,3 +65,13 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
     if user is None:
         raise credentials_exception
     return user
+
+
+@router.post("/login", response_model=Token)
+def login(email: str, password: str, db: Session = Depends(get_db)):
+    customer = db.query(Customer).filter(Customer.email == email).first()
+    if not customer or not bcrypt.checkpw(password.encode('utf-8'), customer.password.encode('utf-8')):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    access_token = create_access_token(data={"sub": customer.email})
+    return {"access_token": access_token, "token_type": "bearer"}
