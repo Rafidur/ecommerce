@@ -3,11 +3,16 @@ from sqlalchemy.orm import Session
 from typing import List
 import models, schemas
 from database import get_db
+from auth.jwt import get_current_customer  # Import the JWT authentication dependency
 
 router = APIRouter(prefix="/addresses", tags=["Addresses"])
 
 @router.post("/", response_model=schemas.Address, status_code=status.HTTP_201_CREATED)
-def create_address(address_create: schemas.AddressCreateMain, db: Session = Depends(get_db)):
+def create_address(
+    address_create: schemas.AddressCreateMain, 
+    db: Session = Depends(get_db),
+    current_customer: models.Customer = Depends(get_current_customer)  # Add JWT dependency
+):
     customer = db.query(models.Customer).filter(models.Customer.id == address_create.customer_id).first()
     if not customer:
         raise HTTPException(status_code=404, detail="Customer not found")
@@ -31,14 +36,23 @@ def create_address(address_create: schemas.AddressCreateMain, db: Session = Depe
     return new_address
 
 @router.get("/{address_id}", response_model=schemas.Address)
-def get_address(address_id: int, db: Session = Depends(get_db)):
+def get_address(
+    address_id: int, 
+    db: Session = Depends(get_db),
+    current_customer: models.Customer = Depends(get_current_customer)  # Add JWT dependency
+):
     address = db.query(models.Address).filter(models.Address.id == address_id).first()
     if not address:
         raise HTTPException(status_code=404, detail="Address not found")
     return address
 
 @router.put("/{address_id}", response_model=schemas.Address)
-def update_address(address_id: int, address_update: schemas.AddressCreateMain, db: Session = Depends(get_db)):
+def update_address(
+    address_id: int, 
+    address_update: schemas.AddressCreateMain, 
+    db: Session = Depends(get_db),
+    current_customer: models.Customer = Depends(get_current_customer)  # Add JWT dependency
+):
     address = db.query(models.Address).filter(models.Address.id == address_id).first()
     if not address:
         raise HTTPException(status_code=404, detail="Address not found")
@@ -59,9 +73,12 @@ def update_address(address_id: int, address_update: schemas.AddressCreateMain, d
     db.refresh(address)
     return address
 
-
 @router.delete("/{address_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_address(address_id: int, db: Session = Depends(get_db)):
+def delete_address(
+    address_id: int, 
+    db: Session = Depends(get_db),
+    current_customer: models.Customer = Depends(get_current_customer)  # Add JWT dependency
+):
     address = db.query(models.Address).filter(models.Address.id == address_id).first()
     if not address:
         raise HTTPException(status_code=404, detail="Address not found")
