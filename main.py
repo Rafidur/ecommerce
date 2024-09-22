@@ -3,6 +3,7 @@ from scalar_fastapi import get_scalar_api_reference
 
 from database import engine
 import product as products
+import protected_routes
 import variant as variants
 import order as orders
 import customer as customers
@@ -17,8 +18,9 @@ app.include_router(customers.router)
 app.include_router(orders.router)
 app.include_router(addresses.router)
 app.include_router(order_items.router)
-# Public routes (like login)
 app.include_router(auth_router.router)
+app.include_router(protected_routes.router)
+
 
 #models.Base.metadata.create_all(bind = engine)
 

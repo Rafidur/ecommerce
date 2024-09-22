@@ -1,25 +1,13 @@
-
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from pydantic import EmailStr
-from auth.jwt import get_current_user
+from auth.jwt import get_current_customer  # Updated to reflect customer terminology
 import models, schemas
 from database import get_db
 from sqlalchemy.orm import joinedload
 
 router = APIRouter(prefix="/api", tags=["orders"])
-
-from datetime import datetime
-from fastapi import APIRouter, HTTPException, Depends, status
-from sqlalchemy.orm import Session
-from typing import List
-import models, schemas
-from database import get_db
-
-router = APIRouter(prefix="/api", tags=["orders"])
-
 
 # Route to create a new order
 @router.post("/orders/", response_model=schemas.Order, status_code=status.HTTP_201_CREATED)
@@ -107,7 +95,7 @@ def create_order(order_create: schemas.OrderCreate, db: Session = Depends(get_db
         if product.has_variants and item.variant_id is not None:
             order_item = models.OrderItem(
                 order_id=order.id,
-                variant_id=variant.variant_id,
+                variant_id=item.variant_id,
                 product_id=item.product_id,
                 quantity=item.quantity,
                 price_per_unit=variant.price
@@ -127,9 +115,7 @@ def create_order(order_create: schemas.OrderCreate, db: Session = Depends(get_db
 
     return order
 
-
-
-#get all orders
+# Get all orders
 @router.get("/", response_model=List[schemas.Order])
 def get_all_orders(db: Session = Depends(get_db)):
     # Use joinedload to eagerly load related order_items
@@ -138,8 +124,6 @@ def get_all_orders(db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No orders found")
     return orders
 
-
-
 # Route to get an order by ID
 @router.get("/{order_id}", response_model=schemas.Order)
 def get_order(order_id: int, db: Session = Depends(get_db)):
@@ -147,7 +131,6 @@ def get_order(order_id: int, db: Session = Depends(get_db)):
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     return order
-
 
 # Route to update an order's status
 @router.put("/{order_id}", response_model=schemas.Order)
@@ -189,8 +172,6 @@ def get_customer_orders(customer_id: int, email: Optional[str] = None, db: Sessi
         raise HTTPException(status_code=404, detail="No orders found for this customer or email")
 
     return orders
-
-
 
 # Route to delete an order by ID
 @router.delete("/{order_id}", response_model=schemas.Order)

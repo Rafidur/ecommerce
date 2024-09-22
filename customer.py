@@ -4,14 +4,13 @@ from typing import List
 from models import Customer as CustomerModel, Address as AddressModel
 from schemas import CustomerCreate, Customer, AddressCreate
 from database import get_db
-from auth.jwt import get_current_user 
+from auth.jwt import get_current_customer  # Updated to reflect customer terminology
 import bcrypt
 
 router = APIRouter(
     prefix="/customers",
     tags=["customers"]
 )
-
 
 # Create a new customer
 @router.post("/", response_model=Customer)
@@ -31,21 +30,19 @@ def create_customer(customer: CustomerCreate, db: Session = Depends(get_db)):
     db.refresh(new_customer)
     return new_customer
 
-
 # Get all customers (requires authentication)
 @router.get("/", response_model=List[Customer])
-def get_customers(db: Session = Depends(get_db), current_user: CustomerModel = Depends(get_current_user)):
+def get_customers(db: Session = Depends(get_db), current_customer: CustomerModel = Depends(get_current_customer)):
     customers = db.query(CustomerModel).all()  # You may want to apply pagination
     return customers
 
 # Get customer by ID (requires authentication)
 @router.get("/{customer_id}", response_model=Customer)
-def get_customer(customer_id: int, db: Session = Depends(get_db), current_user: CustomerModel = Depends(get_current_user)):
+def get_customer(customer_id: int, db: Session = Depends(get_db), current_customer: CustomerModel = Depends(get_current_customer)):
     customer = db.query(CustomerModel).filter(CustomerModel.id == customer_id).first()
     if not customer:
         raise HTTPException(status_code=404, detail="Customer not found")
     return customer
-
 
 # Update customer
 @router.put("/{customer_id}", response_model=Customer)
@@ -66,7 +63,7 @@ def update_customer(customer_id: int, updated_customer: CustomerCreate, db: Sess
 
 # Delete customer (requires authentication)
 @router.delete("/{customer_id}", response_model=Customer)
-def delete_customer(customer_id: int, db: Session = Depends(get_db), current_user: CustomerModel = Depends(get_current_user)):
+def delete_customer(customer_id: int, db: Session = Depends(get_db), current_customer: CustomerModel = Depends(get_current_customer)):
     customer = db.query(CustomerModel).filter(CustomerModel.id == customer_id).first()
     if not customer:
         raise HTTPException(status_code=404, detail="Customer not found")
@@ -77,7 +74,7 @@ def delete_customer(customer_id: int, db: Session = Depends(get_db), current_use
 
 # Create a new address for the customer (requires authentication)
 @router.post("/{customer_id}/addresses", response_model=AddressCreate)
-def create_address(customer_id: int, address: AddressCreate, db: Session = Depends(get_db), current_user: CustomerModel = Depends(get_current_user)):
+def create_address(customer_id: int, address: AddressCreate, db: Session = Depends(get_db), current_customer: CustomerModel = Depends(get_current_customer)):
     # Check if customer exists
     customer = db.query(CustomerModel).filter(CustomerModel.id == customer_id).first()
     if not customer:

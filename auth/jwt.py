@@ -24,14 +24,14 @@ def verify_password(plain_password, hashed_password):
 def get_password_hash(password):
     return pwd_context.hash(password)
 
-# Authenticate user by email and password
-def authenticate_user(db: Session, email: str, password: str):
-    user = db.query(Customer).filter(Customer.email == email).first()
-    if not user:
+# Authenticate customer by email and password
+def authenticate_customer(db: Session, email: str, password: str):
+    customer = db.query(Customer).filter(Customer.email == email).first()
+    if not customer:
         return False
-    if not verify_password(password, user.password):
+    if not verify_password(password, customer.password):
         return False
-    return user
+    return customer
 
 # Create JWT token
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
@@ -42,7 +42,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 # Get current user by verifying the token
-def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+def get_current_customer(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -59,3 +59,14 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
     if user is None:
         raise credentials_exception
     return user
+
+#Get
+def verify_token(token: str, credentials_exception):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+        return email
+    except JWTError:
+        raise credentials_exception

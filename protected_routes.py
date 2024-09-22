@@ -4,24 +4,23 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from auth.jwt import oauth2_scheme, verify_token
 from database import get_db
-from models import User
+from models import Customer
 
 router = APIRouter()
 
 # Dependency to extract and validate the current user
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_current_customer(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     email = verify_token(token, credentials_exception)
-    user = db.query(User).filter(User.email == email).first()
-    if not user:
+    customer = db.query(Customer).filter(Customer.email == email).first()
+    if not customer:
         raise credentials_exception
-    return user
+    return customer
 
-# Example protected route
-@router.get("/users/me")
-async def read_users_me(current_user: User = Depends(get_current_user)):
-    return {"email": current_user.email, "is_active": current_user.is_active}
+@router.get("/customers/me")
+async def read_customers_me(current_customer: Customer = Depends(get_current_customer)):
+    return {"email": current_customer.email, "is_active": current_customer.is_active}
