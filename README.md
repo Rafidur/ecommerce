@@ -1,4 +1,4 @@
-[# FastAPI Customer Management Application
+## FastAPI Customer Management Application
 
 ## Overview
 
@@ -174,4 +174,4 @@ Data Models
 - Order: Captures order details, including customer info, order items, status, and total price.
 - OrderItem: Links products and variants to specific orders, detailing the quantity and price per unit.
 
-)
+
