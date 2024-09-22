@@ -9,8 +9,7 @@ import address as addresses
 import order_item as order_items
 from fastapi import FastAPI
 from scalar_fastapi import get_scalar_api_reference
-from auth.auth_routes import router as auth_router
-from protected_routes import router as protected_router
+import  auth.auth_routes  as auth_router
 
 
 app = FastAPI()
@@ -21,9 +20,7 @@ app.include_router(orders.router)
 app.include_router(addresses.router)
 app.include_router(order_items.router)
 # Public routes (like login)
-app.include_router(auth_router)
-# Protected routes (require JWT auth)
-app.include_router(protected_router)
+app.include_router(auth_router.router)
 
 #models.Base.metadata.create_all(bind = engine)
 

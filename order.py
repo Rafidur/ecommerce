@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from pydantic import EmailStr
+from auth.auth_routes import get_current_user
 import models, schemas
 from database import get_db
 from sqlalchemy.orm import joinedload
@@ -19,11 +20,10 @@ from database import get_db
 
 router = APIRouter(prefix="/api", tags=["orders"])
 
-# Route to create a new order
 
 # Route to create a new order
 @router.post("/orders/", response_model=schemas.Order, status_code=status.HTTP_201_CREATED)
-def create_order(order_create: schemas.OrderCreate, db: Session = Depends(get_db)):
+def create_order(order_create: schemas.OrderCreate, db: Session = Depends(get_db), current_user: models.Customer = Depends(get_current_user)):
     total_price = 0
     product_ids = set()
 
