@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from models import Customer as CustomerModel, Address as AddressModel
-from schemas import CustomerCreate, Customer, AddressCreate
+from schemas import Address, CustomerCreate, Customer, AddressCreate
 from database import get_db
 from auth.jwt import get_current_customer  # Updated to reflect customer terminology
 import bcrypt
@@ -93,3 +93,21 @@ def create_address(customer_id: int, address: AddressCreate, db: Session = Depen
     db.commit()
     db.refresh(new_address)
     return new_address
+
+
+
+# Get all addresses for the logged-in customer (requires authentication)
+@router.get("/me/addresses", response_model=List[Address])
+def get_customer_addresses(db: Session = Depends(get_db), current_customer: CustomerModel = Depends(get_current_customer)):
+    addresses = db.query(AddressModel).filter(AddressModel.customer_id == current_customer.id).all()
+    if not addresses:
+        raise HTTPException(status_code=404, detail="No addresses found for the customer")
+    return addresses
+
+# Get the default address for the logged-in customer (requires authentication)
+@router.get("/me/addresses/default", response_model=Address)
+def get_default_customer_address(db: Session = Depends(get_db), current_customer: CustomerModel = Depends(get_current_customer)):
+    address = db.query(AddressModel).filter(AddressModel.customer_id == current_customer.id, AddressModel.is_default == True).first()
+    if not address:
+        raise HTTPException(status_code=404, detail="Default address not found for the customer")
+    return address

@@ -2,7 +2,7 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from auth.jwt import get_current_customer  # Updated to reflect customer terminology
+from auth.jwt import get_current_customer  
 import models, schemas
 from database import get_db
 from sqlalchemy.orm import joinedload
